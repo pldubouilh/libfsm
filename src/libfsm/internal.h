@@ -74,6 +74,9 @@ struct fsm {
 	const struct fsm_options *opt;
 };
 
+unsigned int
+indexof(const struct fsm *fsm, const struct fsm_state *state);
+
 struct fsm_edge *
 fsm_hasedge_literal(const struct fsm_state *s, char c);
 
