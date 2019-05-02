@@ -648,7 +648,7 @@ main(int argc, char *argv[])
 			}
 
 			{
-				struct fsm_state *s;
+				size_t s;
 
 				/*
 				 * Attach this mapping to each end state for this regexp.
@@ -656,8 +656,8 @@ main(int argc, char *argv[])
 				 * in the same regexp, and keep an argc-sized array of pointers to free().
 				 * XXX: then use fsm_setendopaque() here.
 				 */
-				for (s = new->sl; s != NULL; s = s->next) {
-					if (fsm_isend(new, s)) {
+				for (s = 0; s < new->statecount; s++) {
+					if (fsm_isend(new, new->states[s])) {
 						struct match *matches;
 
 						matches = NULL;
@@ -667,8 +667,8 @@ main(int argc, char *argv[])
 							return EXIT_FAILURE;
 						}
 
-						assert(fsm_getopaque(new, s) == NULL);
-						fsm_setopaque(new, s, matches);
+						assert(fsm_getopaque(new, new->states[s]) == NULL);
+						fsm_setopaque(new, new->states[s], matches);
 					}
 				}
 			}
@@ -721,8 +721,8 @@ main(int argc, char *argv[])
 	}
 
 	if (!ambig) {
-		const struct fsm_state *s;
 		struct fsm *dfa;
+		size_t s;
 
 		dfa = fsm_clone(fsm);
 		if (dfa == NULL) {
@@ -741,14 +741,14 @@ main(int argc, char *argv[])
 			opt.carryopaque = NULL;
 		}
 
-		for (s = dfa->sl; s != NULL; s = s->next) {
+		for (s = 0; s < dfa->statecount; s++) {
 			const struct match *matches;
 
-			if (!fsm_isend(dfa, s)) {
+			if (!fsm_isend(dfa, dfa->states[s])) {
 				continue;
 			}
 
-			matches = fsm_getopaque(dfa, s);
+			matches = fsm_getopaque(dfa, dfa->states[s]);
 			assert(matches != NULL);
 
 			if (matches->next != NULL) {
@@ -767,7 +767,7 @@ main(int argc, char *argv[])
 				}
 
 				fprintf(stderr, "; for example on input '");
-				printexample(stderr, dfa, s);
+				printexample(stderr, dfa, dfa->states[s]);
 				fprintf(stderr, "'\n");
 
 				/* TODO: consider different error codes */
@@ -803,10 +803,10 @@ main(int argc, char *argv[])
 	}
 
 	if (example) {
-		struct fsm_state *s;
+		size_t s;
 
-		for (s = fsm->sl; s != NULL; s = s->next) {
-			if (!fsm_isend(fsm, s)) {
+		for (s = 0; s < fsm->statecount; s++) {
+			if (!fsm_isend(fsm, fsm->states[s])) {
 				continue;
 			}
 
@@ -814,9 +814,9 @@ main(int argc, char *argv[])
 			if (patterns) {
 				const struct match *m;
 
-				assert(fsm_getopaque(fsm, s) != NULL);
+				assert(fsm_getopaque(fsm, fsm->states[s]) != NULL);
 
-				for (m = fsm_getopaque(fsm, s); m != NULL; m = m->next) {
+				for (m = fsm_getopaque(fsm, fsm->states[s]); m != NULL; m = m->next) {
 					/* TODO: print nicely */
 					printf("/%s/", m->s);
 					if (m->next != NULL) {
@@ -827,7 +827,7 @@ main(int argc, char *argv[])
 				printf(": ");
 			}
 
-			printexample(stdout, fsm, s);
+			printexample(stdout, fsm, fsm->states[s]);
 			printf("\n");
 		}
 

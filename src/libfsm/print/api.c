@@ -44,9 +44,10 @@ rangeclass(unsigned char x, unsigned char y)
 void
 fsm_print_api(FILE *f, const struct fsm *fsm)
 {
-	struct fsm_state *s, *start;
+	struct fsm_state *start;
 	struct bm *a; /* indexed by "to" state number */
 	unsigned n;
+	unsigned int from;
 
 	assert(f != NULL);
 	assert(fsm != NULL);
@@ -105,21 +106,19 @@ fsm_print_api(FILE *f, const struct fsm *fsm)
 		return;
 	}
 
-	for (s = fsm->sl; s != NULL; s = s->next) {
+	for (from = 0; from < fsm->statecount; from++) {
 		struct fsm_edge *e;
 		struct fsm_state *st;
 		struct edge_iter it;
 		struct state_iter jt;
-		unsigned int from, to;
+		unsigned int to;
 		unsigned int i;
-
-		from = indexof(fsm, s);
 
 		for (i = 0; i < n; i++) {
 			bm_clear(&a[i]);
 		}
 
-		for (st = state_set_first(s->epsilons, &jt); st != NULL; st = state_set_next(&jt)) {
+		for (st = state_set_first(fsm->states[from]->epsilons, &jt); st != NULL; st = state_set_next(&jt)) {
 			assert(st != NULL);
 
 			to = indexof(fsm, st);
@@ -128,13 +127,13 @@ fsm_print_api(FILE *f, const struct fsm *fsm)
 				from, to);
 		}
 
-		for (e = edge_set_first(s->edges, &it); e != NULL; e = edge_set_next(&it)) {
+		for (e = edge_set_first(fsm->states[from]->edges, &it); e != NULL; e = edge_set_next(&it)) {
 			for (st = state_set_first(e->sl, &jt); st != NULL; st = state_set_next(&jt)) {
 				assert(st != NULL);
 
 				to = indexof(fsm, st);
 
-				bm_set(&a[indexof(fsm, st)], e->symbol);
+				bm_set(&a[to], e->symbol);
 			}
 		}
 
@@ -191,9 +190,13 @@ fsm_print_api(FILE *f, const struct fsm *fsm)
 
 	fprintf(f, "\tfsm_setstart(fsm, s[%u]);\n", indexof(fsm, start));
 
-	for (s = fsm->sl; s != NULL; s = s->next) {
-		if (fsm_isend(fsm, s)) {
-			fprintf(f, "\tfsm_setend(fsm, s[%u], 1);\n", indexof(fsm, s));
+	{
+		unsigned s;
+
+		for (s = 0; s < fsm->statecount; s++) {
+			if (fsm_isend(fsm, fsm->states[s])) {
+				fprintf(f, "\tfsm_setend(fsm, s[%u], 1);\n", s);
+			}
 		}
 	}
 
