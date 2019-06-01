@@ -68,6 +68,9 @@ fsm_reverse(struct fsm *fsm)
 	/* TODO: possibly centralise as a state-copying function */
 	{
 		size_t i;
+		const struct fsm_state *start;
+
+		start = fsm_getstart(fsm);
 
 		for (i = 0; i < fsm->statecount; i++) {
 			struct fsm_state *p;
@@ -80,7 +83,7 @@ fsm_reverse(struct fsm *fsm)
 
 			fsm->states[i]->tmp.equiv = p;
 
-			if (fsm->states[i] == fsm->start) {
+			if (fsm->states[i] == start) {
 				end = p;
 				fsm_setend(new, end, 1);
 			}
