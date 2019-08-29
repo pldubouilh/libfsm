@@ -97,6 +97,7 @@ print_name(const char *name,
 	} a[] = {
 		{ "api",    fsm_print_api,    NULL  },
 		{ "c",      fsm_print_c,      NULL  },
+		{ "vhdl",   fsm_print_vhdl,   NULL  },
 		{ "dot",    fsm_print_dot,    NULL  },
 		{ "fsm",    fsm_print_fsm,    NULL  },
 		{ "ir",     fsm_print_ir,     NULL  },

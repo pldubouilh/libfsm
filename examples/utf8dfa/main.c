@@ -146,6 +146,8 @@ main(int argc, char *argv[])
 					print = fsm_print_api;
 				} else if (strcmp(optarg, "c") == 0) {
 					print = fsm_print_c;
+				} else if (strcmp(optarg, "vhdl") == 0) {
+					print = fsm_print_vhdl;
 				} else {
 					fprintf(stderr, "Invalid language '%s'", optarg);
 					exit(1);
